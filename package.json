@@ -1,10 +1,11 @@
 {
-  "name": "dltechsup",
-  "productName": "DLTechSup",
+  "name": "sonora",
+  "productName": "Sonora",
   "version": "1.0.0",
-  "description": "DLTechSup — baixe músicas do YouTube em MP3.",
+  "description": "Sonora — baixe músicas do YouTube em MP3. Desenvolvido por DLTechSup.",
   "author": {
-    "name": "DLTechSup"
+    "name": "DLTechSup",
+    "email": "dltechsup@users.noreply.github.com"
   },
   "license": "MIT",
   "private": true,
@@ -23,9 +24,9 @@
     "dist:linux": "npm run prepare:all && npm run build:ui && electron-builder --linux"
   },
   "build": {
-    "appId": "com.dltechsup.app",
-    "productName": "DLTechSup",
-    "artifactName": "DLTechSup-${version}-${os}-${arch}.${ext}",
+    "appId": "com.dltechsup.sonora",
+    "productName": "Sonora",
+    "artifactName": "Sonora-${version}-${os}-${arch}.${ext}",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -69,18 +70,22 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "DLTechSup",
-      "uninstallDisplayName": "DLTechSup",
-      "artifactName": "DLTechSup-Setup-${version}.${ext}",
+      "shortcutName": "Sonora",
+      "uninstallDisplayName": "Sonora ${version} (DLTechSup)",
+      "artifactName": "Sonora-Setup-${version}.${ext}",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
       "license": "build/license_pt_BR.txt",
       "runAfterFinish": true,
-      "language": "1046"
+      "language": "1046",
+      "include": "build/installer.nsh",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/uninstallerSidebar.bmp",
+      "installerHeader": "build/installerHeader.bmp"
     },
     "portable": {
-      "artifactName": "DLTechSup-Portatil-${version}.${ext}"
+      "artifactName": "Sonora-Portatil-${version}.${ext}"
     },
     "mac": {
       "target": [
@@ -88,7 +93,7 @@
       ],
       "category": "public.app-category.music",
       "icon": "build/icon.png",
-      "artifactName": "DLTechSup-${version}-mac-${arch}.${ext}"
+      "artifactName": "Sonora-${version}-mac-${arch}.${ext}"
     },
     "linux": {
       "target": [
@@ -98,8 +103,9 @@
       "category": "Audio",
       "icon": "build/icon.png",
       "maintainer": "DLTechSup <dltechsup@users.noreply.github.com>",
-      "executableName": "dltechsup",
-      "synopsis": "Baixe músicas do YouTube em MP3"
+      "executableName": "sonora",
+      "synopsis": "Baixe músicas do YouTube em MP3",
+      "vendor": "DLTechSup"
     },
     "copyright": "Copyright © 2026 DLTechSup",
     "publish": null

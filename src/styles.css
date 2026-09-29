@@ -189,7 +189,8 @@ button:disabled { opacity: .45; cursor: default; }
   .cover.large { width: 100%; height: auto; aspect-ratio: 16 / 9; }
 }
 .brand-tag {
-  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
-  color: var(--muted); padding: 3px 8px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border);
+  font-size: 11.5px; font-weight: 500;
+  color: var(--muted); padding: 3px 9px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border);
 }
 .chip svg, .primary svg, .ghost svg { flex: none; }
+.maker { color: var(--text); font-weight: 600; }

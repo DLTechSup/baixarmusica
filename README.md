@@ -1,6 +1,8 @@
-# DLTechSup — Baixar Música
+# Sonora
 
-Aplicativo de desktop para baixar músicas do YouTube em **MP3**. É feito com **Electron + React** e usa o
+**Desenvolvido por DLTechSup**
+
+O Sonora é um aplicativo de desktop para baixar músicas do YouTube em **MP3**. É feito com **Electron + React** e usa o
 [yt-dlp](engine/yt-dlp) como motor de download.
 
 ![Ícone](build/icon.png)
@@ -11,7 +13,7 @@ Aplicativo de desktop para baixar músicas do YouTube em **MP3**. É feito com *
 - Qualidade de **128, 192, 256 ou 320 kbps**
 - **Capa do álbum** e metadados (título e artista) gravados no MP3
 - Fila de downloads com progresso, velocidade, tempo restante, cancelar e tentar de novo
-- Escolha da pasta de destino (padrão: `Músicas/DLTechSup`)
+- Escolha da pasta de destino (padrão: `Músicas/Sonora`)
 - Tudo embutido: o usuário final **não precisa instalar Python, ffmpeg nem nada mais**
 
 ## Baixar o instalador
@@ -20,15 +22,20 @@ A cada push, o GitHub Actions (**Actions → Gerar instaladores**) gera:
 
 | Sistema | Arquivo |
 |---|---|
-| Windows | `DLTechSup-Setup-1.0.0.exe` (instalador) e `DLTechSup-Portatil-1.0.0.exe` |
-| macOS | `DLTechSup-1.0.0-mac-arm64.dmg` |
-| Linux | `DLTechSup-1.0.0-linux-x86_64.AppImage` e `.deb` |
+| Windows | `Sonora-Setup-1.0.0.exe` (instalador) e `Sonora-Portatil-1.0.0.exe` |
+| macOS | `Sonora-1.0.0-mac-arm64.dmg` |
+| Linux | `Sonora-1.0.0-linux-x86_64.AppImage` e `.deb` |
 
-Abra a execução mais recente do workflow e baixe o artefato **DLTechSup-Windows** (ou o do seu sistema).
+Abra a execução mais recente do workflow e baixe o artefato **Sonora-Windows** (ou o do seu sistema).
 Para publicar uma versão em **Releases**, crie uma tag, por exemplo `git tag v1.0.0 && git push origin v1.0.0`.
 
 > O instalador não é assinado digitalmente, então o Windows SmartScreen pode mostrar um aviso.
 > Clique em **Mais informações → Executar assim mesmo**.
+
+O instalador do Windows é personalizado com a marca DLTechSup: barra lateral e cabeçalho com a
+arte do Sonora, página de boas-vindas em português, e **DLTechSup** como editor em
+"Aplicativos instalados" e nas propriedades do `.exe`. As artes são geradas por
+`scripts/make-installer-art.py` e a personalização fica em `build/installer.nsh`.
 
 ## Gerar o instalador na sua máquina
 
@@ -67,7 +74,7 @@ electron/          processo principal (janela, IPC, execução do motor)
 src/               interface React
 engine/yt-dlp/     código-fonte do motor yt-dlp
 scripts/           scripts de build (motor, dependências, ícone)
-build/             ícone e licença do instalador
+build/             ícone, artes, script e licença do instalador
 resources/bin/     binários empacotados (gerados: yt-dlp, ffmpeg, deno)
 ```
 

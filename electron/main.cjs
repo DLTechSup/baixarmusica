@@ -5,7 +5,7 @@ const engine = require('./engine.cjs');
 
 const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
 const defaults = () => ({
-  outDir: path.join(app.getPath('music'), 'DLTechSup'),
+  outDir: path.join(app.getPath('music'), 'Sonora'),
   quality: 320,
   embedCover: true,
   concurrency: 2,
@@ -37,7 +37,7 @@ function createWindow() {
     minWidth: 760,
     minHeight: 560,
     backgroundColor: '#0b0b12',
-    title: 'DLTechSup',
+    title: 'Sonora',
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     titleBarStyle: 'hidden',
     titleBarOverlay: process.platform === 'darwin' ? true : { color: '#00000000', symbolColor: '#c9c9d6', height: 44 },

@@ -64,7 +64,7 @@ jobs:
       - name: Enviar instaladores
         uses: actions/upload-artifact@v4
         with:
-          name: DLTechSup-${{ matrix.name }}
+          name: Sonora-${{ matrix.name }}
           path: |
             release/*.exe
             release/*.dmg

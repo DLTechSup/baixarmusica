@@ -1,5 +1,6 @@
-DLTechSup — Baixar Música
-Copyright (c) 2026 DLTechSup
+Sonora — Baixe músicas do YouTube em MP3
+Desenvolvido por DLTechSup
+Copyright (c) 2026 DLTechSup. Todos os direitos reservados.
 
 Este programa é distribuído gratuitamente para uso pessoal.
 

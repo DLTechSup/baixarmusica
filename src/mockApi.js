@@ -5,7 +5,7 @@ const sub = (type) => (cb) => {
   listeners[type].add(cb);
   return () => listeners[type].delete(cb);
 };
-let settings = { outDir: '~/Música/DLTechSup', quality: 320, embedCover: true, concurrency: 2 };
+let settings = { outDir: '~/Música/Sonora', quality: 320, embedCover: true, concurrency: 2 };
 const timers = new Map();
 
 const sample = (id, title, artist, duration) => ({

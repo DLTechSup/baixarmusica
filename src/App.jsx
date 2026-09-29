@@ -102,8 +102,8 @@ export default function App() {
       <header className={`titlebar ${isMac ? 'mac' : ''}`}>
         <div className="brand">
           <IconLogo />
-          <span>DLTechSup</span>
-          <span className="brand-tag">Baixar Música</span>
+          <span>Sonora</span>
+          <span className="brand-tag">por DLTechSup</span>
         </div>
         <button className="ghost small no-drag" onClick={() => api().openFolder()} title="Abrir pasta de músicas">
           <IconFolder width={16} height={16} /> Minhas músicas
@@ -134,7 +134,11 @@ export default function App() {
       </main>
 
       <footer className="footer muted">
-        <span>v{info?.version ?? '—'}</span>
+        <span>Sonora v{info?.version ?? '—'}</span>
+        <span className="dot" />
+        <span>
+          Desenvolvido por <strong className="maker">DLTechSup</strong>
+        </span>
         <span className="dot" />
         <span>
           Motor yt-dlp {info?.engine ?? <em className="warn">não encontrado</em>}
