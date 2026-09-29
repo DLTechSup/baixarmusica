@@ -1,0 +1,83 @@
+name: Gerar instaladores
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            target: --win
+          - name: macOS
+            os: macos-latest
+            target: --mac
+          - name: Linux
+            os: ubuntu-22.04
+            target: --linux
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Baixar ffmpeg e deno
+        run: npm run deps
+
+      - name: Compilar o motor yt-dlp (PyInstaller)
+        run: npm run engine
+
+      - name: Testar o motor
+        shell: bash
+        run: |
+          ls -la resources/bin
+          ./resources/bin/yt-dlp* --version
+
+      - name: Gerar interface
+        run: npm run build:ui
+
+      - name: Gerar instalador
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Enviar instaladores
+        uses: actions/upload-artifact@v4
+        with:
+          name: DLTechSup-${{ matrix.name }}
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.AppImage
+            release/*.deb
+          if-no-files-found: error
+
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*.exe
+            release/*.dmg
+            release/*.AppImage
+            release/*.deb

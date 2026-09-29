@@ -1,0 +1,121 @@
+{
+  "name": "dltechsup",
+  "productName": "DLTechSup",
+  "version": "1.0.0",
+  "description": "DLTechSup — baixe músicas do YouTube em MP3.",
+  "author": {
+    "name": "DLTechSup"
+  },
+  "license": "MIT",
+  "private": true,
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n vite,electron \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "build:ui": "vite build",
+    "deps": "node scripts/fetch-deps.mjs",
+    "engine": "node scripts/build-engine.mjs",
+    "prepare:all": "npm run deps && npm run engine",
+    "start": "npm run build:ui && electron .",
+    "dist": "npm run prepare:all && npm run build:ui && electron-builder",
+    "dist:win": "npm run prepare:all && npm run build:ui && electron-builder --win",
+    "dist:mac": "npm run prepare:all && npm run build:ui && electron-builder --mac",
+    "dist:linux": "npm run prepare:all && npm run build:ui && electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.dltechsup.app",
+    "productName": "DLTechSup",
+    "artifactName": "DLTechSup-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/bin",
+        "to": "bin",
+        "filter": [
+          "**/*",
+          "!.gitkeep"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "publisherName": "DLTechSup"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DLTechSup",
+      "uninstallDisplayName": "DLTechSup",
+      "artifactName": "DLTechSup-Setup-${version}.${ext}",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "license": "build/license_pt_BR.txt",
+      "runAfterFinish": true,
+      "language": "1046"
+    },
+    "portable": {
+      "artifactName": "DLTechSup-Portatil-${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.music",
+      "icon": "build/icon.png",
+      "artifactName": "DLTechSup-${version}-mac-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Audio",
+      "icon": "build/icon.png",
+      "maintainer": "DLTechSup <dltechsup@users.noreply.github.com>",
+      "executableName": "dltechsup",
+      "synopsis": "Baixe músicas do YouTube em MP3"
+    },
+    "copyright": "Copyright © 2026 DLTechSup",
+    "publish": null
+  },
+  "devDependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "extract-zip": "^2.0.1",
+    "ffmpeg-static": "^5.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^6.0.7",
+    "wait-on": "^8.0.1"
+  }
+}

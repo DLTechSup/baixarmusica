@@ -1,0 +1,15 @@
+DLTechSup — Baixar Música
+Copyright (c) 2026 DLTechSup
+
+Este programa é distribuído gratuitamente para uso pessoal.
+
+Componentes de terceiros incluídos:
+ - yt-dlp (https://github.com/yt-dlp/yt-dlp) — licença Unlicense (domínio público).
+ - FFmpeg (https://ffmpeg.org) — licença GPL/LGPL.
+ - Deno (https://deno.com) — licença MIT.
+ - Electron e React — licença MIT.
+
+Use o programa apenas para baixar conteúdo que você tem direito de baixar,
+respeitando os termos de uso do YouTube e as leis de direitos autorais.
+
+O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIAS DE QUALQUER TIPO.

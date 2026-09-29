@@ -1,0 +1,12 @@
+node_modules/
+dist/
+release/
+resources/bin/*
+!resources/bin/.gitkeep
+engine/yt-dlp/build/
+engine/yt-dlp/dist/
+engine/yt-dlp/*.spec
+.venv-engine/
+__pycache__/
+*.pyc
+.DS_Store
