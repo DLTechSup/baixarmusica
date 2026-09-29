@@ -37,7 +37,20 @@ arte do Sonora, página de boas-vindas em português, e **DLTechSup** como edito
 "Aplicativos instalados" e nas propriedades do `.exe`. As artes são geradas por
 `scripts/make-installer-art.py` e a personalização fica em `build/installer.nsh`.
 
-## Gerar o instalador na sua máquina
+## Gerar o instalador no Windows (automático)
+
+Dê **dois cliques em `gerar-instalador.bat`**. Ele faz todo o processo sozinho:
+
+1. Verifica o **Node.js 20+** e o **Python 3.10+**. Se algum faltar, oferece instalar pelo `winget`.
+2. Instala as dependências do projeto.
+3. Baixa o ffmpeg e o deno.
+4. Compila o motor yt-dlp com o PyInstaller.
+5. Gera a interface.
+6. Cria o instalador e a versão portátil na pasta `release`, que abre sozinha no final.
+
+Esse mesmo `.bat` é usado pelo GitHub Actions para gerar o instalador do Windows, então ele é testado a cada build.
+
+## Gerar o instalador na sua máquina (manual)
 
 Pré-requisitos: **Node.js 20+** e **Python 3.10+**. Gere no próprio sistema de destino (o instalador de
 Windows precisa ser gerado no Windows, porque o motor é compilado com PyInstaller).

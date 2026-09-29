@@ -38,25 +38,33 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Gerar instalador (Windows, pelo gerar-instalador.bat)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: gerar-instalador.bat
+
       - name: Instalar dependências
+        if: runner.os != 'Windows'
         run: npm ci
 
       - name: Baixar ffmpeg e deno
+        if: runner.os != 'Windows'
         run: npm run deps
 
       - name: Compilar o motor yt-dlp (PyInstaller)
+        if: runner.os != 'Windows'
         run: npm run engine
 
       - name: Testar o motor
-        shell: bash
-        run: |
-          ls -la resources/bin
-          ./resources/bin/yt-dlp* --version
+        if: runner.os != 'Windows'
+        run: ./resources/bin/yt-dlp --version
 
       - name: Gerar interface
+        if: runner.os != 'Windows'
         run: npm run build:ui
 
       - name: Gerar instalador
+        if: runner.os != 'Windows'
         run: npx electron-builder ${{ matrix.target }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
