@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('api', {
   showFile: (file) => ipcRenderer.invoke('shell:show', file),
   openFolder: (dir) => ipcRenderer.invoke('shell:open', dir),
   fetchMedia: (url) => ipcRenderer.invoke('media:fetch', url),
-  startDownload: (jobId, url) => ipcRenderer.invoke('download:start', { jobId, url }),
+  startDownload: (jobId, url, opts = {}) => ipcRenderer.invoke('download:start', { jobId, url, ...opts }),
   cancelDownload: (jobId) => ipcRenderer.invoke('download:cancel', jobId),
   onProgress: on('download:progress'),
   onDone: on('download:done'),

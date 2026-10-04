@@ -2,7 +2,7 @@
   "name": "sonora",
   "productName": "Sonora",
   "version": "1.0.0",
-  "description": "Sonora — baixe músicas do YouTube em MP3. Desenvolvido por DLTechSup.",
+  "description": "Sonora — baixe músicas (MP3) e vídeos (MP4) do YouTube. Desenvolvido por DLTechSup.",
   "author": {
     "name": "DLTechSup",
     "email": "dltechsup@users.noreply.github.com"
@@ -100,11 +100,11 @@
         "AppImage",
         "deb"
       ],
-      "category": "Audio",
+      "category": "AudioVideo",
       "icon": "build/icon.png",
       "maintainer": "DLTechSup <dltechsup@users.noreply.github.com>",
       "executableName": "sonora",
-      "synopsis": "Baixe músicas do YouTube em MP3",
+      "synopsis": "Baixe músicas (MP3) e vídeos (MP4) do YouTube",
       "vendor": "DLTechSup"
     },
     "copyright": "Copyright © 2026 DLTechSup",

@@ -132,15 +132,24 @@ const PROG = '__PROG__';
 const POST = '__POST__';
 const FILE = '__FILE__';
 
-// Baixa uma faixa como MP3. Retorna { cancel } e chama os callbacks conforme avança.
-function download({ url, outDir, quality, embedCover }, { onProgress, onDone, onError }) {
+// Seletor de formato para vídeo: melhor vídeo até a altura escolhida + melhor áudio.
+function videoFormat(height) {
+  const h = Number(height);
+  const cap = h ? `[height<=${h}]` : '';
+  return `bv*${cap}+ba/b${cap}/bv*+ba/b`;
+}
+
+// Baixa uma faixa como MP3 ou um vídeo como MP4. Retorna { cancel } e chama os callbacks conforme avança.
+function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCover }, { onProgress, onDone, onError }) {
+  const isVideo = mode === 'video';
   const args = [
     '--no-playlist',
     '--newline',
     '--progress',
     '--no-mtime',
-    '-f', 'bestaudio/best',
-    '-x', '--audio-format', 'mp3', '--audio-quality', `${quality}K`,
+    ...(isVideo
+      ? ['-f', videoFormat(videoQuality), '--merge-output-format', 'mp4', '-S', 'vcodec:h264,acodec:aac,res']
+      : ['-f', 'bestaudio/best', '-x', '--audio-format', 'mp3', '--audio-quality', `${quality}K`]),
     '--embed-metadata',
     '--progress-template',
     `download:${PROG}%(progress.downloaded_bytes)s|%(progress.total_bytes)s|%(progress.total_bytes_estimate)s|%(progress.speed)s|%(progress.eta)s`,

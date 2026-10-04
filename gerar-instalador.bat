@@ -114,6 +114,7 @@ echo  ==========================================================
 for %%f in (release\*.exe) do echo     - %%~nxf
 echo.
 echo  Sonora-Setup-*.exe     = instalador (com atalhos)
+echo  (o Sonora baixa musicas em MP3 e videos em MP4)
 echo  Sonora-Portatil-*.exe  = versao portatil (nao precisa instalar)
 echo.
 if not defined CI (

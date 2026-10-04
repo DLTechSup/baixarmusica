@@ -28,3 +28,4 @@ export const IconMusic = icon(<><path d="M9 18V5l12-2v13" /><circle cx="6" cy="1
 export const IconList = icon(<><path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" /><path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" /></>);
 export const IconTrash = icon(<><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></>);
 export const IconPlay = icon(<path d="m6 3 14 9-14 9z" />);
+export const IconVideo = icon(<><path d="m22 8-6 4 6 4V8Z" /><rect x="2" y="6" width="14" height="12" rx="2" /></>);

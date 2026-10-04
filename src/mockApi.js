@@ -5,7 +5,7 @@ const sub = (type) => (cb) => {
   listeners[type].add(cb);
   return () => listeners[type].delete(cb);
 };
-let settings = { outDir: '~/Música/Sonora', quality: 320, embedCover: true, concurrency: 2 };
+let settings = { outDir: '~/Música/Sonora', mode: 'audio', quality: 320, videoQuality: 1080, embedCover: true, concurrency: 2 };
 const timers = new Map();
 
 const sample = (id, title, artist, duration) => ({
@@ -50,7 +50,7 @@ export const mockApi = {
       else if (p < 130) emit('progress', { jobId, stage: 'convert', percent: null });
       else {
         clearInterval(t);
-        emit('done', { jobId, file: '/tmp/musica.mp3' });
+        emit('done', { jobId, file: '/tmp/download' });
       }
     }, 300);
     timers.set(jobId, t);

@@ -53,7 +53,7 @@ export default function App() {
     for (const job of next) {
       started.current.add(job.jobId);
       patchJob(job.jobId, { status: 'starting', percent: 0 });
-      api().startDownload(job.jobId, job.url);
+      api().startDownload(job.jobId, job.url, { mode: job.mode, quality: job.quality, videoQuality: job.videoQuality });
     }
   }, [jobs, settings, patchJob]);
 
@@ -77,7 +77,7 @@ export default function App() {
 
   const enqueue = (tracks) => {
     const known = new Set(jobs.filter((j) => j.status !== 'error' && j.status !== 'cancelled').map((j) => j.url));
-    const fresh = tracks.filter((t) => !known.has(t.url)).map((t) => ({ ...t, jobId: newJobId(), status: 'queued', percent: 0 }));
+    const fresh = tracks.filter((t) => !known.has(t.url)).map((t) => ({ ...t, jobId: newJobId(), status: 'queued', percent: 0, mode: settings.mode, quality: settings.quality, videoQuality: settings.videoQuality }));
     setJobs((list) => [...fresh, ...list]);
     setPreview(null);
     setUrl('');
@@ -105,23 +105,23 @@ export default function App() {
           <span>Sonora</span>
           <span className="brand-tag">por DLTechSup</span>
         </div>
-        <button className="ghost small no-drag" onClick={() => api().openFolder()} title="Abrir pasta de músicas">
-          <IconFolder width={16} height={16} /> Minhas músicas
+        <button className="ghost small no-drag" onClick={() => api().openFolder()} title="Abrir pasta de downloads">
+          <IconFolder width={16} height={16} /> Meus downloads
         </button>
       </header>
 
       <main className="content">
         <section className="hero">
           <h1>
-            Suas músicas favoritas, <span className="grad">em MP3.</span>
+            {settings?.mode === 'video' ? <>Seus vídeos favoritos, <span className="grad">em MP4.</span></> : <>Suas músicas favoritas, <span className="grad">em MP3.</span></>}
           </h1>
-          <p className="muted">Cole o link de um vídeo ou playlist do YouTube e baixe em alta qualidade.</p>
+          <p className="muted">Cole o link de um vídeo ou playlist do YouTube e baixe como música (MP3) ou vídeo (MP4) em alta qualidade.</p>
           <UrlBar value={url} onChange={setUrl} onSubmit={search} loading={loading} />
           {settings && <Options settings={settings} onChange={updateSettings} onChooseFolder={chooseFolder} />}
           {error && <div className="alert">{error}</div>}
         </section>
 
-        {preview && <Preview data={preview} onDownload={enqueue} onClose={() => setPreview(null)} />}
+        {preview && <Preview data={preview} mode={settings?.mode} onDownload={enqueue} onClose={() => setPreview(null)} />}
 
         <Queue
           jobs={jobs}

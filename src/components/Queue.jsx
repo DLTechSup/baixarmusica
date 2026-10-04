@@ -6,7 +6,7 @@ const LABEL = {
   queued: 'Na fila',
   starting: 'Iniciando…',
   downloading: 'Baixando',
-  converting: 'Convertendo para MP3…',
+  converting: 'Convertendo…',
   done: 'Concluído',
   error: 'Erro',
   cancelled: 'Cancelado',
@@ -27,6 +27,7 @@ function JobRow({ job, onCancel, onRetry, onRemove, onShow }) {
       <div className="job-body">
         <div className="job-title ellipsis" title={job.title}>{job.title}</div>
         <div className="job-sub">
+          <span className="fmt">{job.mode === 'video' ? 'MP4' : 'MP3'}</span>
           {job.status === 'done' && <IconCheck width={14} height={14} className="ok" />}
           {job.status === 'error' && <IconAlert width={14} height={14} className="bad" />}
           <span className="ellipsis">{detail}</span>
@@ -82,7 +83,7 @@ export default function Queue({ jobs, onCancel, onRetry, onRemove, onClear, onSh
         <div className="empty">
           <div className="empty-icon"><IconMusic width={26} height={26} /></div>
           <p>Nenhum download ainda.</p>
-          <p className="muted">As músicas que você baixar aparecem aqui.</p>
+          <p className="muted">As músicas e vídeos que você baixar aparecem aqui.</p>
         </div>
       ) : (
         <ul className="jobs">

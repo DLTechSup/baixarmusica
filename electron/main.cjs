@@ -6,7 +6,9 @@ const engine = require('./engine.cjs');
 const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
 const defaults = () => ({
   outDir: path.join(app.getPath('music'), 'Sonora'),
+  mode: 'audio',
   quality: 320,
+  videoQuality: 1080,
   embedCover: true,
   concurrency: 2,
 });
@@ -74,7 +76,7 @@ ipcMain.handle('settings:set', (_e, patch) => saveSettings(patch));
 ipcMain.handle('dialog:folder', async () => {
   const current = loadSettings().outDir;
   const r = await dialog.showOpenDialog(win, {
-    title: 'Escolha onde salvar as músicas',
+    title: 'Escolha onde salvar os downloads',
     defaultPath: current,
     properties: ['openDirectory', 'createDirectory'],
   });
@@ -97,8 +99,9 @@ ipcMain.handle('media:fetch', async (_e, url) => {
   }
 });
 
-ipcMain.handle('download:start', (_e, { jobId, url }) => {
-  const { outDir, quality, embedCover } = loadSettings();
+ipcMain.handle('download:start', (_e, { jobId, url, mode, quality, videoQuality }) => {
+  const settings = loadSettings();
+  const { outDir, embedCover } = settings;
   try {
     fs.mkdirSync(outDir, { recursive: true });
   } catch (err) {
@@ -106,7 +109,14 @@ ipcMain.handle('download:start', (_e, { jobId, url }) => {
     return;
   }
   const job = engine.download(
-    { url, outDir, quality, embedCover },
+    {
+      url,
+      outDir,
+      mode: mode || settings.mode,
+      quality: quality || settings.quality,
+      videoQuality: videoQuality || settings.videoQuality,
+      embedCover,
+    },
     {
       onProgress: (p) => send('download:progress', { jobId, ...p }),
       onDone: ({ file }) => {

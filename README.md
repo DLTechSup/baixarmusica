@@ -2,7 +2,7 @@
 
 **Desenvolvido por DLTechSup**
 
-O Sonora é um aplicativo de desktop para baixar músicas do YouTube em **MP3**. É feito com **Electron + React** e usa o
+O Sonora é um aplicativo de desktop para baixar **músicas em MP3** e **vídeos em MP4** do YouTube. É feito com **Electron + React** e usa o
 [yt-dlp](engine/yt-dlp) como motor de download.
 
 ![Ícone](build/icon.png)
@@ -10,10 +10,12 @@ O Sonora é um aplicativo de desktop para baixar músicas do YouTube em **MP3**.
 ## Recursos
 
 - Cole o link de um **vídeo** ou de uma **playlist** e escolha quais músicas baixar
-- Qualidade de **128, 192, 256 ou 320 kbps**
-- **Capa do álbum** e metadados (título e artista) gravados no MP3
+- Alterne entre **Áudio MP3** e **Vídeo MP4** com um clique
+- Áudio em **128, 192, 256 ou 320 kbps**; vídeo em **Máx., 1080p, 720p, 480p ou 360p** (H.264 + AAC, compatível com qualquer player)
+- **Capa/miniatura** e metadados (título e artista) gravados no arquivo
+- Cada item da fila guarda o formato escolhido na hora de adicioná-lo
 - Fila de downloads com progresso, velocidade, tempo restante, cancelar e tentar de novo
-- Escolha da pasta de destino (padrão: `Músicas/Sonora`)
+- Escolha da pasta de destino (padrão: `Músicas/Sonora`, para áudio e vídeo)
 - Tudo embutido: o usuário final **não precisa instalar Python, ffmpeg nem nada mais**
 
 ## Baixar o instalador

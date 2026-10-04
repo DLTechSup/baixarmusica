@@ -13,7 +13,8 @@ function Cover({ src, className = '' }) {
 
 export { Cover };
 
-export default function Preview({ data, onDownload, onClose }) {
+export default function Preview({ data, mode, onDownload, onClose }) {
+  const isVideo = mode === 'video';
   const isPlaylist = data.type === 'playlist';
   const [selected, setSelected] = useState(() => new Set(isPlaylist ? data.tracks.map((t) => t.id) : []));
   const total = useMemo(
@@ -37,7 +38,7 @@ export default function Preview({ data, onDownload, onClose }) {
       <div className="preview-head">
         <Cover src={data.thumbnail} className="large" />
         <div className="preview-meta">
-          <span className="eyebrow">{isPlaylist ? <><IconList width={14} height={14} /> Playlist · {data.tracks.length} músicas</> : 'Música'}</span>
+          <span className="eyebrow">{isPlaylist ? <><IconList width={14} height={14} /> Playlist · {data.tracks.length} {isVideo ? 'vídeos' : 'músicas'}</> : isVideo ? 'Vídeo' : 'Música'}</span>
           <h2>{data.title}</h2>
           <p className="muted">
             {data.artist}
@@ -49,7 +50,7 @@ export default function Preview({ data, onDownload, onClose }) {
             onClick={() => onDownload(isPlaylist ? data.tracks.filter((t) => selected.has(t.id)) : [data])}
           >
             <IconDownload width={18} height={18} />
-            {isPlaylist ? `Baixar ${selected.size} ${selected.size === 1 ? 'música' : 'músicas'}` : 'Baixar MP3'}
+            {isPlaylist ? `Baixar ${selected.size} ${isVideo ? (selected.size === 1 ? 'vídeo' : 'vídeos') : (selected.size === 1 ? 'música' : 'músicas')}` : isVideo ? 'Baixar MP4' : 'Baixar MP3'}
           </button>
         </div>
       </div>

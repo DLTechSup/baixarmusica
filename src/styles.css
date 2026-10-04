@@ -194,3 +194,5 @@ button:disabled { opacity: .45; cursor: default; }
 }
 .chip svg, .primary svg, .ghost svg { flex: none; }
 .maker { color: var(--text); font-weight: 600; }
+.fmt { flex: none; font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 6px; border-radius: 6px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+.segmented button svg { vertical-align: -2px; margin-right: 4px; }
