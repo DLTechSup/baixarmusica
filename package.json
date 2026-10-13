@@ -1,8 +1,8 @@
 {
   "name": "sonora",
   "productName": "Sonora",
-  "version": "1.0.0",
-  "description": "Sonora — baixe músicas (MP3) e vídeos (MP4) do YouTube. Desenvolvido por DLTechSup.",
+  "version": "1.1.0",
+  "description": "Sonora — baixe músicas (MP3) e vídeos (MP4) do YouTube, SoundCloud, TikTok, Instagram e mais de 1.100 sites. Desenvolvido por DLTechSup.",
   "author": {
     "name": "DLTechSup",
     "email": "dltechsup@users.noreply.github.com"
@@ -21,7 +21,8 @@
     "dist": "npm run prepare:all && npm run build:ui && electron-builder",
     "dist:win": "npm run prepare:all && npm run build:ui && electron-builder --win",
     "dist:mac": "npm run prepare:all && npm run build:ui && electron-builder --mac",
-    "dist:linux": "npm run prepare:all && npm run build:ui && electron-builder --linux"
+    "dist:linux": "npm run prepare:all && npm run build:ui && electron-builder --linux",
+    "sites": "python scripts/gen-sites.py"
   },
   "build": {
     "appId": "com.dltechsup.sonora",
@@ -104,7 +105,7 @@
       "icon": "build/icon.png",
       "maintainer": "DLTechSup <dltechsup@users.noreply.github.com>",
       "executableName": "sonora",
-      "synopsis": "Baixe músicas (MP3) e vídeos (MP4) do YouTube",
+      "synopsis": "Baixe músicas (MP3) e vídeos (MP4) de mais de 1.100 sites",
       "vendor": "DLTechSup"
     },
     "copyright": "Copyright © 2026 DLTechSup",

@@ -21,7 +21,7 @@ export default function UrlBar({ value, onChange, onSubmit, loading }) {
       <input
         autoFocus
         spellCheck={false}
-        placeholder="https://www.youtube.com/watch?v=..."
+        placeholder="Cole aqui o link (YouTube, SoundCloud, TikTok, Instagram…)"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onPaste={(e) => {

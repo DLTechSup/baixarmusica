@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { IconLogo, IconFolder } from './components/Icons.jsx';
+import { IconLogo, IconFolder, IconGlobe } from './components/Icons.jsx';
 import UrlBar from './components/UrlBar.jsx';
 import Options from './components/Options.jsx';
 import Preview from './components/Preview.jsx';
 import Queue from './components/Queue.jsx';
+import SitesModal, { SitesStrip } from './components/Sites.jsx';
 
 const api = () => window.api;
 let seq = 0;
@@ -17,6 +18,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [showSites, setShowSites] = useState(false);
   const started = useRef(new Set());
 
   useEffect(() => {
@@ -105,6 +107,9 @@ export default function App() {
           <span>Sonora</span>
           <span className="brand-tag">por DLTechSup</span>
         </div>
+        <button className="ghost small no-drag" onClick={() => setShowSites(true)} title="Ver todos os sites suportados">
+          <IconGlobe width={16} height={16} /> Sites suportados
+        </button>
         <button className="ghost small no-drag" onClick={() => api().openFolder()} title="Abrir pasta de downloads">
           <IconFolder width={16} height={16} /> Meus downloads
         </button>
@@ -115,8 +120,12 @@ export default function App() {
           <h1>
             {settings?.mode === 'video' ? <>Seus vídeos favoritos, <span className="grad">em MP4.</span></> : <>Suas músicas favoritas, <span className="grad">em MP3.</span></>}
           </h1>
-          <p className="muted">Cole o link de um vídeo ou playlist do YouTube e baixe como música (MP3) ou vídeo (MP4) em alta qualidade.</p>
+          <p className="muted">
+            Cole o link de uma música, vídeo ou playlist do YouTube, SoundCloud, TikTok, Instagram e muitos outros sites,
+            e baixe como música (MP3) ou vídeo (MP4) em alta qualidade.
+          </p>
           <UrlBar value={url} onChange={setUrl} onSubmit={search} loading={loading} />
+          <SitesStrip onOpen={() => setShowSites(true)} />
           {settings && <Options settings={settings} onChange={updateSettings} onChooseFolder={chooseFolder} />}
           {error && <div className="alert">{error}</div>}
         </section>
@@ -132,6 +141,8 @@ export default function App() {
           onShow={(job) => api().showFile(job.file)}
         />
       </main>
+
+      {showSites && <SitesModal onClose={() => setShowSites(false)} />}
 
       <footer className="footer muted">
         <span>Sonora v{info?.version ?? '—'}</span>

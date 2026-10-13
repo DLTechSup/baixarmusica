@@ -10,6 +10,7 @@ const defaults = () => ({
   quality: 320,
   videoQuality: 1080,
   embedCover: true,
+  cookiesBrowser: '',
   concurrency: 2,
 });
 
@@ -93,7 +94,7 @@ ipcMain.handle('shell:open', (_e, target) => {
 
 ipcMain.handle('media:fetch', async (_e, url) => {
   try {
-    return { ok: true, data: await engine.fetchInfo(url) };
+    return { ok: true, data: await engine.fetchInfo(url, { cookiesBrowser: loadSettings().cookiesBrowser }) };
   } catch (err) {
     return { ok: false, error: err.message };
   }
@@ -101,7 +102,7 @@ ipcMain.handle('media:fetch', async (_e, url) => {
 
 ipcMain.handle('download:start', (_e, { jobId, url, mode, quality, videoQuality }) => {
   const settings = loadSettings();
-  const { outDir, embedCover } = settings;
+  const { outDir, embedCover, cookiesBrowser } = settings;
   try {
     fs.mkdirSync(outDir, { recursive: true });
   } catch (err) {
@@ -114,8 +115,9 @@ ipcMain.handle('download:start', (_e, { jobId, url, mode, quality, videoQuality 
       outDir,
       mode: mode || settings.mode,
       quality: quality || settings.quality,
-      videoQuality: videoQuality || settings.videoQuality,
+      videoQuality: videoQuality ?? settings.videoQuality,
       embedCover,
+      cookiesBrowser,
     },
     {
       onProgress: (p) => send('download:progress', { jobId, ...p }),

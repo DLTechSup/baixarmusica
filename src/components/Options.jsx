@@ -1,6 +1,16 @@
-import { IconFolder, IconMusic, IconVideo } from './Icons.jsx';
+import { IconFolder, IconKey, IconMusic, IconVideo } from './Icons.jsx';
 
 const QUALITIES = [128, 192, 256, 320];
+const BROWSERS = [
+  { value: '', label: 'Sem login' },
+  { value: 'chrome', label: 'Chrome' },
+  { value: 'edge', label: 'Edge' },
+  { value: 'firefox', label: 'Firefox' },
+  { value: 'brave', label: 'Brave' },
+  { value: 'opera', label: 'Opera' },
+  { value: 'vivaldi', label: 'Vivaldi' },
+  { value: 'safari', label: 'Safari' },
+];
 const VIDEO_QUALITIES = [{ value: 0, label: 'Máx.' }, { value: 1080, label: '1080p' }, { value: 720, label: '720p' }, { value: 480, label: '480p' }, { value: 360, label: '360p' }];
 
 export default function Options({ settings, onChange, onChooseFolder }) {
@@ -55,6 +65,17 @@ export default function Options({ settings, onChange, onChooseFolder }) {
         <input type="checkbox" checked={settings.embedCover} onChange={(e) => onChange({ embedCover: e.target.checked })} />
         <span className="track"><span className="thumb" /></span>
         {isVideo ? 'Miniatura e dados' : 'Capa e dados'}
+      </label>
+
+      <label
+        className={`select-chip ${settings.cookiesBrowser ? 'on' : ''}`}
+        title="Para sites que exigem conta (Instagram, Facebook, conteúdo com restrição de idade…): o Sonora usa o login que você já fez neste navegador."
+      >
+        <IconKey width={15} height={15} />
+        <span>Login do navegador</span>
+        <select value={settings.cookiesBrowser || ''} onChange={(e) => onChange({ cookiesBrowser: e.target.value })}>
+          {BROWSERS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+        </select>
       </label>
     </div>
   );

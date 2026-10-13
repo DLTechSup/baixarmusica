@@ -28,8 +28,12 @@ function engineCommand() {
   return [isWin ? 'python' : 'python3', ['-m', 'yt_dlp'], { PYTHONPATH: source }];
 }
 
-function commonArgs() {
+// Navegadores de onde o motor pode ler o login (cookies) para sites que exigem conta.
+const BROWSERS = ['chrome', 'edge', 'firefox', 'brave', 'opera', 'vivaldi', 'chromium', 'safari'];
+
+function commonArgs({ cookiesBrowser } = {}) {
   const args = ['--no-colors', '--encoding', 'utf-8', '--no-warnings', '--ignore-config'];
+  if (BROWSERS.includes(cookiesBrowser)) args.push('--cookies-from-browser', cookiesBrowser);
   const ffmpeg = bundled('ffmpeg');
   if (ffmpeg) args.push('--ffmpeg-location', ffmpeg);
   const deno = bundled('deno');
@@ -37,19 +41,19 @@ function commonArgs() {
   return args;
 }
 
-function spawnEngine(args) {
+function spawnEngine(args, opts) {
   const [cmd, pre, env] = engineCommand();
-  return spawn(cmd, [...pre, ...commonArgs(), ...args], {
+  return spawn(cmd, [...pre, ...commonArgs(opts), ...args], {
     env: { ...process.env, ...env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' },
     windowsHide: true,
   });
 }
 
-function runEngine(args) {
+function runEngine(args, opts) {
   return new Promise((resolve, reject) => {
     let child;
     try {
-      child = spawnEngine(args);
+      child = spawnEngine(args, opts);
     } catch (err) {
       return reject(err);
     }
@@ -71,12 +75,26 @@ function cleanError(text) {
     .replace(/^ERROR:\s*/, '')
     .replace(/;\s*please report this issue.*$/i, '')
     .replace(/^\[[^\]]+\]\s*(?:[\w-]+:\s*)?/, '');
-  if (/Unsupported URL/i.test(msg)) return 'Link não suportado. Cole um link do YouTube.';
-  if (/Unable to download webpage|Failed to resolve|getaddrinfo|timed out|Connection/i.test(msg)) return 'Sem conexão com o YouTube. Verifique sua internet.';
-  if (/Private video/i.test(msg)) return 'Este vídeo é privado.';
-  if (/Video unavailable|not available/i.test(msg)) return 'Vídeo indisponível.';
-  if (/Sign in to confirm your age/i.test(msg)) return 'Vídeo com restrição de idade.';
+  if (/Unsupported URL/i.test(msg)) return 'Este link não é suportado. Veja a lista de sites suportados.';
   if (/is not a valid URL/i.test(msg)) return 'Link inválido.';
+  if (/DRM/i.test(msg)) return 'Este conteúdo é protegido contra cópia (DRM) e não pode ser baixado.';
+  if (/could not (find|copy).*cookie|cookies? database|failed to decrypt/i.test(msg)) {
+    return 'Não foi possível ler o login do navegador escolhido. Confira se ele está instalado e se você entrou no site por ele. No Chrome e no Edge, feche o navegador e tente de novo, ou use o Firefox.';
+  }
+  if (/Sign in to confirm your age|age.restricted|confirm your age/i.test(msg)) {
+    return 'Conteúdo com restrição de idade. Ative "Login do navegador" nas opções e tente de novo.';
+  }
+  if (/log ?in|sign ?in|cookies|authenticat|account|registered users|members only|premium|subscri/i.test(msg)) {
+    return 'Este site exige login. Entre no site pelo seu navegador e ative "Login do navegador" nas opções.';
+  }
+  if (/Private (video|post|account)|is private/i.test(msg)) return 'Este conteúdo é privado.';
+  if (/geo.?restrict|not available in your country|from your location/i.test(msg)) return 'Este conteúdo não está disponível no seu país.';
+  if (/HTTP Error 429|Too Many Requests|rate.?limit/i.test(msg)) return 'O site limitou os acessos. Espere alguns minutos e tente de novo.';
+  if (/Unable to download (webpage|JSON)|Failed to resolve|getaddrinfo|timed out|Connection|Network is unreachable/i.test(msg)) {
+    return 'Não foi possível acessar o site. Verifique sua internet.';
+  }
+  if (/Video unavailable|not available|no longer available|has been removed|404/i.test(msg)) return 'Conteúdo indisponível ou removido.';
+  if (/No video formats found|Requested format is not available/i.test(msg)) return 'Não há mídia disponível para baixar neste link.';
   return msg;
 }
 
@@ -91,12 +109,30 @@ function bestThumb(info) {
     : null;
 }
 
+function trackUrl(e) {
+  if (e.webpage_url || e.original_url) return e.webpage_url || e.original_url;
+  if (e.url && /^https?:/.test(e.url)) return e.url;
+  if (/youtube/i.test(e.ie_key || e.extractor_key || '') && e.id) return `https://www.youtube.com/watch?v=${e.id}`;
+  return e.url || null;
+}
+
+function siteName(e) {
+  const domain = e.webpage_url_domain || (() => {
+    try {
+      return new URL(trackUrl(e)).hostname.replace(/^www\./, '');
+    } catch {
+      return '';
+    }
+  })();
+  return domain || e.extractor_key || e.ie_key || '';
+}
+
 function toTrack(e) {
-  const url = e.webpage_url || e.original_url
-    || (e.url && /^https?:/.test(e.url) ? e.url : `https://www.youtube.com/watch?v=${e.id}`);
+  const url = trackUrl(e);
   return {
-    id: e.id,
+    id: e.id || url,
     url,
+    site: siteName(e),
     title: e.title || 'Sem título',
     artist: e.artist || e.uploader || e.channel || '',
     duration: e.duration || null,
@@ -104,13 +140,17 @@ function toTrack(e) {
   };
 }
 
-async function fetchInfo(url) {
-  const out = await runEngine(['-J', '--flat-playlist', url]);
+async function fetchInfo(url, opts) {
+  const out = await runEngine(['-J', '--flat-playlist', '--', url], opts);
   const info = JSON.parse(out);
-  if (info._type === 'playlist') {
-    const tracks = (info.entries || []).filter((e) => e && e.id && e.title !== '[Private video]' && e.title !== '[Deleted video]').map(toTrack);
+  if (info._type === 'playlist' || info._type === 'multi_video') {
+    const tracks = (info.entries || [])
+      .filter((e) => e && (e.id || e.url) && e.title !== '[Private video]' && e.title !== '[Deleted video]')
+      .map(toTrack)
+      .filter((t) => t.url);
     return {
       type: 'playlist',
+      site: siteName(info),
       title: info.title || 'Playlist',
       artist: info.uploader || info.channel || '',
       thumbnail: bestThumb(info) || tracks[0]?.thumbnail || null,
@@ -140,7 +180,7 @@ function videoFormat(height) {
 }
 
 // Baixa uma faixa como MP3 ou um vídeo como MP4. Retorna { cancel } e chama os callbacks conforme avança.
-function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCover }, { onProgress, onDone, onError }) {
+function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCover, cookiesBrowser }, { onProgress, onDone, onError }) {
   const isVideo = mode === 'video';
   const args = [
     '--no-playlist',
@@ -156,7 +196,7 @@ function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCov
     '--progress-template', `postprocess:${POST}%(progress.status)s|%(progress.postprocessor)s`,
     '--print', `after_move:${FILE}%(filepath)s`,
     '-P', outDir,
-    '-o', '%(title)s.%(ext)s',
+    '-o', '%(title).180B.%(ext)s',
   ];
   if (isWin) args.push('--windows-filenames');
   if (embedCover) args.push('--embed-thumbnail', '--convert-thumbnails', 'jpg');
@@ -164,7 +204,7 @@ function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCov
 
   let child;
   try {
-    child = spawnEngine(args);
+    child = spawnEngine(args, { cookiesBrowser });
   } catch (err) {
     onError(err.message);
     return { cancel() {} };
@@ -219,4 +259,4 @@ function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCov
   };
 }
 
-module.exports = { fetchInfo, download, version };
+module.exports = { fetchInfo, download, version, BROWSERS };

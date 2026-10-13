@@ -5,11 +5,11 @@ const sub = (type) => (cb) => {
   listeners[type].add(cb);
   return () => listeners[type].delete(cb);
 };
-let settings = { outDir: '~/Música/Sonora', mode: 'audio', quality: 320, videoQuality: 1080, embedCover: true, concurrency: 2 };
+let settings = { outDir: '~/Música/Sonora', cookiesBrowser: '', mode: 'audio', quality: 320, videoQuality: 1080, embedCover: true, concurrency: 2 };
 const timers = new Map();
 
 const sample = (id, title, artist, duration) => ({
-  id, title, artist, duration,
+  id, title, artist, duration, site: 'youtube.com',
   url: `https://www.youtube.com/watch?v=${id}`,
   thumbnail: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`,
 });

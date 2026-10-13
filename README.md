@@ -2,14 +2,20 @@
 
 **Desenvolvido por DLTechSup**
 
-O Sonora é um aplicativo de desktop para baixar **músicas em MP3** e **vídeos em MP4** do YouTube. É feito com **Electron + React** e usa o
+O Sonora é um aplicativo de desktop para baixar **músicas em MP3** e **vídeos em MP4** de **mais de 1.100 sites**:
+YouTube, YouTube Music, SoundCloud, TikTok, Instagram, Facebook, X (Twitter), Vimeo, Bandcamp, Mixcloud, Twitch,
+Reddit, Palco MP3, Globo e muitos outros. É feito com **Electron + React** e usa o
 [yt-dlp](engine/yt-dlp) como motor de download.
 
 ![Ícone](build/icon.png)
 
 ## Recursos
 
-- Cole o link de um **vídeo** ou de uma **playlist** e escolha quais músicas baixar
+- Cole o link de um **vídeo**, **música** ou **playlist** de qualquer site suportado e escolha o que baixar
+- Botão **Sites suportados** com os sites mais populares e a lista completa (com busca) de todos os sites que o motor baixa
+- O site de origem aparece na prévia e na fila de downloads
+- **Login do navegador**: para sites que exigem conta (Instagram, Facebook, conteúdo com restrição de idade…),
+  o Sonora usa o login que você já fez no Chrome, Edge, Firefox, Brave, Opera, Vivaldi ou Safari
 - Alterne entre **Áudio MP3** e **Vídeo MP4** com um clique
 - Áudio em **128, 192, 256 ou 320 kbps**; vídeo em **Máx., 1080p, 720p, 480p ou 360p** (H.264 + AAC, compatível com qualquer player)
 - **Capa/miniatura** e metadados (título e artista) gravados no arquivo
@@ -20,16 +26,18 @@ O Sonora é um aplicativo de desktop para baixar **músicas em MP3** e **vídeos
 
 ## Baixar o instalador
 
-A cada push, o GitHub Actions (**Actions → Gerar instaladores**) gera:
+A versão mais recente fica em **[Releases](https://github.com/DLTechSup/baixarmusica/releases/latest)**.
+
+Além disso, a cada push, o GitHub Actions (**Actions → Gerar instaladores**) gera:
 
 | Sistema | Arquivo |
 |---|---|
-| Windows | `Sonora-Setup-1.0.0.exe` (instalador) e `Sonora-Portatil-1.0.0.exe` |
-| macOS | `Sonora-1.0.0-mac-arm64.dmg` |
-| Linux | `Sonora-1.0.0-linux-x86_64.AppImage` e `.deb` |
+| Windows | `Sonora-Setup-1.1.0.exe` (instalador) e `Sonora-Portatil-1.1.0.exe` |
+| macOS | `Sonora-1.1.0-mac-arm64.dmg` |
+| Linux | `Sonora-1.1.0-linux-x86_64.AppImage` e `.deb` |
 
 Abra a execução mais recente do workflow e baixe o artefato **Sonora-Windows** (ou o do seu sistema).
-Para publicar uma versão em **Releases**, crie uma tag, por exemplo `git tag v1.0.0 && git push origin v1.0.0`.
+Para publicar uma versão em **Releases**, crie uma tag, por exemplo `git tag v1.1.0 && git push origin v1.1.0`.
 
 > O instalador não é assinado digitalmente, então o Windows SmartScreen pode mostrar um aviso.
 > Clique em **Mais informações → Executar assim mesmo**.
@@ -92,6 +100,18 @@ scripts/           scripts de build (motor, dependências, ícone)
 build/             ícone, artes, script e licença do instalador
 resources/bin/     binários empacotados (gerados: yt-dlp, ffmpeg, deno)
 ```
+
+## Sites suportados
+
+A lista de sites do app (`src/sites.json`) é gerada a partir do próprio motor, descartando os extratores
+marcados como quebrados, os internos e os de conteúdo adulto (esses continuam funcionando se você colar o link).
+Para atualizar a lista depois de trocar a versão do motor:
+
+```bash
+npm run sites
+```
+
+Conteúdo protegido contra cópia (DRM), como Spotify, Deezer, Apple Music e Netflix, não pode ser baixado.
 
 ## Sobre o motor
 

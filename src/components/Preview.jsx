@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { IconDownload, IconList, IconMusic, IconX } from './Icons.jsx';
 import { formatDuration } from '../format.js';
+import { friendlySite } from '../popularSites.js';
 
 function Cover({ src, className = '' }) {
   const [failed, setFailed] = useState(false);
@@ -38,7 +39,9 @@ export default function Preview({ data, mode, onDownload, onClose }) {
       <div className="preview-head">
         <Cover src={data.thumbnail} className="large" />
         <div className="preview-meta">
-          <span className="eyebrow">{isPlaylist ? <><IconList width={14} height={14} /> Playlist · {data.tracks.length} {isVideo ? 'vídeos' : 'músicas'}</> : isVideo ? 'Vídeo' : 'Música'}</span>
+          <span className="eyebrow">{isPlaylist ? <><IconList width={14} height={14} /> Playlist · {data.tracks.length} {isVideo ? 'vídeos' : 'músicas'}</> : isVideo ? 'Vídeo' : 'Música'}
+            {data.site && <span className="site-tag">{friendlySite(data.site)}</span>}
+          </span>
           <h2>{data.title}</h2>
           <p className="muted">
             {data.artist}

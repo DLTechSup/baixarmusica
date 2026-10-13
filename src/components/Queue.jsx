@@ -1,6 +1,7 @@
 import { Cover } from './Preview.jsx';
 import { IconAlert, IconCheck, IconFolder, IconMusic, IconRetry, IconTrash, IconX } from './Icons.jsx';
 import { formatDuration, formatEta, formatSpeed } from '../format.js';
+import { friendlySite } from '../popularSites.js';
 
 const LABEL = {
   queued: 'Na fila',
@@ -28,6 +29,7 @@ function JobRow({ job, onCancel, onRetry, onRemove, onShow }) {
         <div className="job-title ellipsis" title={job.title}>{job.title}</div>
         <div className="job-sub">
           <span className="fmt">{job.mode === 'video' ? 'MP4' : 'MP3'}</span>
+          {job.site && <span className="job-site">{friendlySite(job.site)}</span>}
           {job.status === 'done' && <IconCheck width={14} height={14} className="ok" />}
           {job.status === 'error' && <IconAlert width={14} height={14} className="bad" />}
           <span className="ellipsis">{detail}</span>
