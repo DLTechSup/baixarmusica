@@ -37,7 +37,7 @@ Além disso, a cada push, o GitHub Actions (**Actions → Gerar instaladores**) 
 | Linux | `Sonora-1.1.0-linux-x86_64.AppImage` e `.deb` |
 
 Abra a execução mais recente do workflow e baixe o artefato **Sonora-Windows** (ou o do seu sistema).
-Para publicar uma versão em **Releases**, crie uma tag, por exemplo `git tag v1.1.0 && git push origin v1.1.0`.
+A cada push na branch principal, o workflow publica (ou atualiza) a release `v<versão do package.json>` em **Releases**. Para lançar uma nova versão, aumente o campo `version` do `package.json`. Criar uma tag `v*` também publica uma release.
 
 > O instalador não é assinado digitalmente, então o Windows SmartScreen pode mostrar um aviso.
 > Clique em **Mais informações → Executar assim mesmo**.
