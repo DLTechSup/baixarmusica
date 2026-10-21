@@ -1,4 +1,4 @@
-const api = window.api;
+const bridge = window.api;
 const $ = (id) => document.getElementById(id);
 
 const state = { settings: null, listId: 0, posts: new Map(), selected: new Set(), loading: false, profile: null, queue: [], running: 0 };
@@ -129,7 +129,7 @@ function onProfile(p) {
   $('p-name').textContent = p.single ? `Post de @${p.username}` : `${p.fullName ? `${p.fullName} · ` : ''}@${p.username}`;
   $('p-bio').textContent = p.biography || '';
   $('p-stats').textContent = p.single ? '' : [p.posts != null && `${fmtNum(p.posts)} posts`, p.followers != null && `${fmtNum(p.followers)} seguidores`, p.isPrivate && '🔒 privado'].filter(Boolean).join(' · ');
-  $('p-open').onclick = () => api.openLink(`https://www.instagram.com/${p.username}/`);
+  $('p-open').onclick = () => bridge.openLink(`https://www.instagram.com/${p.username}/`);
 }
 
 function onListEvent({ listId, event }) {
@@ -160,7 +160,7 @@ async function search(value = $('url').value) {
   state.listId += 1;
   state.loading = true;
   renderToolbar();
-  await api.startList(state.listId, target);
+  await bridge.startList(state.listId, target);
 }
 
 // Fila de downloads (poucos em paralelo para não irritar o Instagram).
@@ -180,7 +180,7 @@ async function pump() {
     const code = state.queue.shift();
     state.running += 1;
     setStatus(code, 'downloading', 'Baixando…');
-    api.download(code).then((r) => {
+    bridge.download(code).then((r) => {
       if (r.ok && r.files.length) setStatus(code, 'done', `✔ ${r.files.length} ${r.files.length === 1 ? 'arquivo' : 'arquivos'}`);
       else if (r.ok) setStatus(code, 'done', 'Só vídeo (ignorado)');
       else setStatus(code, 'error', r.error || 'Falha');
@@ -198,13 +198,13 @@ $('form').addEventListener('submit', (e) => {
   search();
 });
 $('btn-paste').addEventListener('click', async () => {
-  const text = (await api.readClipboard())?.trim();
+  const text = (await bridge.readClipboard())?.trim();
   if (!text) return;
   $('url').value = text;
   search(text);
 });
 $('btn-stop').addEventListener('click', () => {
-  api.cancelList(state.listId);
+  bridge.cancelList(state.listId);
   state.loading = false;
   renderToolbar();
 });
@@ -219,15 +219,15 @@ $('sel-all').addEventListener('change', (e) => {
 });
 $('btn-dl').addEventListener('click', () => enqueue([...state.selected]));
 $('btn-folder').addEventListener('click', async () => {
-  const next = await api.chooseFolder();
+  const next = await bridge.chooseFolder();
   if (next) {
     state.settings = next;
     renderSettings();
   }
 });
-$('btn-open').addEventListener('click', () => api.openFolder());
+$('btn-open').addEventListener('click', () => bridge.openFolder());
 $('opt-videos').addEventListener('change', async (e) => {
-  state.settings = await api.setSettings({ videos: e.target.checked });
+  state.settings = await bridge.setSettings({ videos: e.target.checked });
   renderSettings();
 });
 
@@ -241,32 +241,32 @@ $('btn-login').addEventListener('click', () => {
 });
 dlg.querySelector('[data-link]').addEventListener('click', (e) => {
   e.preventDefault();
-  api.openLink(e.target.dataset.link);
+  bridge.openLink(e.target.dataset.link);
 });
 $('dlg-cancel').addEventListener('click', () => dlg.close());
 $('dlg-save').addEventListener('click', async () => {
   const value = $('cookie').value.trim();
   if (!value) return dlg.close();
-  state.settings = await api.setSettings({ cookie: value });
+  state.settings = await bridge.setSettings({ cookie: value });
   renderSettings();
   $('btn-login').classList.remove('attention');
   dlg.close();
   toast('Login salvo. Busque o perfil de novo.');
 });
 $('dlg-logout').addEventListener('click', async () => {
-  state.settings = await api.setSettings({ cookie: '' });
+  state.settings = await bridge.setSettings({ cookie: '' });
   renderSettings();
   dlg.close();
   toast('Você saiu da conta.');
 });
 
-api.onListEvent(onListEvent);
+bridge.onListEvent(onListEvent);
 
 (async () => {
-  state.settings = await api.getSettings();
+  state.settings = await bridge.getSettings();
   renderSettings();
   renderToolbar();
-  const info = await api.info();
+  const info = await bridge.info();
   $('ver').textContent = `InstaFotos v${info.version}`;
   $('eng').textContent = info.engine ? `Motor Instaloader ${info.engine}` : 'Motor não encontrado';
 })();
