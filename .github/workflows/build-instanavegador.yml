@@ -1,10 +1,10 @@
-name: Gerar InstaFotos (Windows)
+name: Gerar InstaNavegador (Windows)
 
 on:
   push:
     paths:
-      - 'instafotos/**'
-      - '.github/workflows/build-instafotos.yml'
+      - 'instanavegador/**'
+      - '.github/workflows/build-instanavegador.yml'
   workflow_dispatch:
 
 jobs:
@@ -12,19 +12,21 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        working-directory: instafotos
+        working-directory: instanavegador
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Testar
+        run: |
+          npm ci
+          npm test
+        shell: cmd
       - name: Gerar instalador
         shell: cmd
         run: gerar-instalador.bat
       - uses: actions/upload-artifact@v4
         with:
-          name: InstaFotos-Windows
-          path: instafotos/release/*.exe
+          name: InstaNavegador-Windows
+          path: instanavegador/release/*.exe

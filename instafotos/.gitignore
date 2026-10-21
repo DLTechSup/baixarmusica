@@ -1,9 +1,0 @@
-node_modules/
-release/
-resources/bin/*
-!resources/bin/.gitkeep
-.venv-engine/
-build-engine/
-*.spec
-__pycache__/
-*.pyc

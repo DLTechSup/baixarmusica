@@ -1,0 +1,76 @@
+{
+  "name": "instanavegador",
+  "productName": "InstaNavegador",
+  "version": "1.0.0",
+  "description": "InstaNavegador — navegador feito para baixar fotos, vídeos e Reels do Instagram. Desenvolvido por DLTechSup.",
+  "author": {
+    "name": "DLTechSup",
+    "email": "dltechsup@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "private": true,
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n vite,electron \"vite\" \"wait-on tcp:5174 && cross-env VITE_DEV_SERVER_URL=http://localhost:5174 electron .\"",
+    "build:ui": "vite build",
+    "start": "npm run build:ui && electron .",
+    "test": "node test/media.test.cjs",
+    "dist": "npm run build:ui && electron-builder",
+    "dist:win": "npm run build:ui && electron-builder --win",
+    "dist:mac": "npm run build:ui && electron-builder --mac",
+    "dist:linux": "npm run build:ui && electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.dltechsup.instanavegador",
+    "productName": "InstaNavegador",
+    "artifactName": "InstaNavegador-${version}-${os}-${arch}.${ext}",
+    "directories": { "output": "release", "buildResources": "build" },
+    "files": ["dist/**/*", "electron/**/*", "package.json"],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico",
+      "publisherName": "DLTechSup"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "InstaNavegador",
+      "uninstallDisplayName": "InstaNavegador ${version} (DLTechSup)",
+      "artifactName": "InstaNavegador-Setup-${version}.${ext}",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "language": "1046"
+    },
+    "portable": { "artifactName": "InstaNavegador-Portatil-${version}.${ext}" },
+    "mac": { "target": ["dmg"], "category": "public.app-category.photography", "icon": "build/icon.png" },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Graphics",
+      "icon": "build/icon.png",
+      "maintainer": "DLTechSup <dltechsup@users.noreply.github.com>",
+      "executableName": "instanavegador",
+      "synopsis": "Navegador para baixar fotos, vídeos e Reels do Instagram",
+      "vendor": "DLTechSup"
+    },
+    "copyright": "Copyright © 2026 DLTechSup",
+    "publish": null
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^6.0.7",
+    "wait-on": "^8.0.1"
+  }
+}

@@ -1,2 +1,0 @@
-instaloader>=4.14
-pyinstaller>=6.0
