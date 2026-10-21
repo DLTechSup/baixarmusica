@@ -13,6 +13,8 @@ import json
 import os
 import re
 import sys
+import time
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import instaloader
@@ -121,21 +123,87 @@ def explain(err, logged_in=False):
     return 'error', detail, detail
 
 
-def post_item(post):
-    typename = post.typename
-    count = post.mediacount if typename == 'GraphSidecar' else 1
-    caption = (post.caption or '').strip().replace('\n', ' ')
+# --- API web do Instagram (v1) ------------------------------------------------------------
+# A listagem por GraphQL do Instaloader foi bloqueada pelo Instagram (devolve HTML em vez de JSON),
+# então a lista de fotos usa os mesmos endpoints que o site usa quando você está logado.
+
+def best_image(node):
+    cands = ((node.get('image_versions2') or {}).get('candidates')) or []
+    if not cands:
+        return None
+    return max(cands, key=lambda c: c.get('width') or 0).get('url')
+
+
+def best_video(node):
+    vids = node.get('video_versions') or []
+    if not vids:
+        return None
+    return max(vids, key=lambda c: c.get('width') or 0).get('url')
+
+
+def api_item(item):
+    """Converte um item da API v1 no formato usado pelo app."""
+    kids = item.get('carousel_media') or []
+    first = kids[0] if kids else item
+    caption = ((item.get('caption') or {}).get('text') or '').strip().replace('\n', ' ')
+    taken = item.get('taken_at') or 0
     return {
         'type': 'post',
-        'shortcode': post.shortcode,
-        'thumb': post.url,
-        'kind': typename,
-        'isVideo': bool(post.is_video),
-        'count': count,
+        'shortcode': item.get('code'),
+        'thumb': best_image(first) or best_image(item),
+        'kind': 'GraphSidecar' if kids else ('GraphVideo' if item.get('media_type') == 2 else 'GraphImage'),
+        'isVideo': item.get('media_type') == 2,
+        'count': len(kids) if kids else 1,
         'caption': caption[:140],
-        'date': post.date_utc.strftime('%Y-%m-%d'),
-        'owner': post.owner_username,
+        'date': datetime.fromtimestamp(taken, timezone.utc).strftime('%Y-%m-%d') if taken else '',
+        'owner': (item.get('user') or {}).get('username', ''),
     }
+
+
+def api_nodes(item):
+    """Lista (é_vídeo, url) de cada foto/vídeo de um post."""
+    nodes = item.get('carousel_media') or [item]
+    out = []
+    for n in nodes:
+        is_video = n.get('media_type') == 2
+        url = best_video(n) if is_video else best_image(n)
+        if url:
+            out.append((is_video, url))
+    return out
+
+
+def shortcode_to_id(code):
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+    n = 0
+    for ch in code[:11] if len(code) > 28 else code:
+        n = n * 64 + alphabet.index(ch)
+    return n
+
+
+def fetch_media(loader, shortcode):
+    data = loader.context.get_json(f'api/v1/media/{shortcode_to_id(shortcode)}/info/', {})
+    items = data.get('items') or []
+    if not items:
+        raise ex.QueryReturnedNotFoundException('Post não encontrado.')
+    return items[0]
+
+
+def iter_feed(loader, userid, limit=0):
+    count, max_id = 0, None
+    while True:
+        params = {'count': 12}
+        if max_id:
+            params['max_id'] = max_id
+        data = loader.context.get_json(f'api/v1/feed/user/{userid}/', params)
+        for item in data.get('items') or []:
+            yield item
+            count += 1
+            if limit and count >= limit:
+                return
+        max_id = data.get('next_max_id')
+        if not data.get('more_available') or not max_id:
+            return
+        time.sleep(1.2)
 
 
 def cmd_list(args):
@@ -143,10 +211,11 @@ def cmd_list(args):
     loader = make_loader(args.sessionid)
     try:
         if kind == 'post':
-            post = instaloader.Post.from_shortcode(loader.context, name)
-            emit(type='profile', username=post.owner_username, fullName='', biography='', posts=1,
+            item = fetch_media(loader, name)
+            post = api_item(item)
+            emit(type='profile', username=post['owner'], fullName='', biography='', posts=1,
                  followers=None, isPrivate=False, picture=None, single=True)
-            emit(**post_item(post))
+            emit(**post)
             emit(type='done', count=1)
             return
         profile = instaloader.Profile.from_username(loader.context, name)
@@ -157,11 +226,11 @@ def cmd_list(args):
         if profile.is_private and not profile.followed_by_viewer:
             fail('private', 'Este perfil é privado. Só dá para ver se a conta usada no login seguir o perfil.')
         count = 0
-        for post in profile.get_posts():
-            emit(**post_item(post))
-            count += 1
-            if args.limit and count >= args.limit:
-                break
+        for item in iter_feed(loader, profile.userid, args.limit):
+            post = api_item(item)
+            if post['shortcode'] and post['thumb']:
+                emit(**post)
+                count += 1
         emit(type='done', count=count)
     except SystemExit:
         raise
@@ -172,24 +241,19 @@ def cmd_list(args):
 def cmd_download(args):
     loader = make_loader(args.sessionid)
     try:
-        post = instaloader.Post.from_shortcode(loader.context, args.shortcode)
-        folder = os.path.join(args.out, post.owner_username)
+        item = fetch_media(loader, args.shortcode)
+        owner = (item.get('user') or {}).get('username') or 'instagram'
+        folder = os.path.join(args.out, owner)
         os.makedirs(folder, exist_ok=True)
-        stamp = post.date_utc.strftime('%Y-%m-%d')
-        base = f'{post.owner_username}_{stamp}_{post.shortcode}'
-        items = []
-        if post.typename == 'GraphSidecar':
-            for node in post.get_sidecar_nodes():
-                items.append((node.is_video, node.video_url if node.is_video else node.display_url))
-        else:
-            items.append((post.is_video, post.video_url if post.is_video else post.url))
-        total = len(items)
+        taken = datetime.fromtimestamp(item.get('taken_at') or 0, timezone.utc)
+        base = f"{owner}_{taken.strftime('%Y-%m-%d')}_{args.shortcode}"
+        items = api_nodes(item)
         saved = 0
         for i, (is_video, url) in enumerate(items, 1):
             if is_video and not args.videos:
                 continue
-            stem = os.path.join(folder, base if total == 1 else f'{base}_{i}')
-            loader.download_pic(stem, url, post.date_utc)
+            stem = os.path.join(folder, base if len(items) == 1 else f'{base}_{i}')
+            loader.download_pic(stem, url, taken)
             for ext in ('jpg', 'jpeg', 'png', 'webp', 'mp4'):
                 if os.path.exists(f'{stem}.{ext}'):
                     emit(type='file', path=os.path.abspath(f'{stem}.{ext}'))
