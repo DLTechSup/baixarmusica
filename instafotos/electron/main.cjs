@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, nativeTheme, safeStorage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, nativeTheme, safeStorage, protocol, net } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const engine = require('./engine.cjs');
@@ -48,6 +48,22 @@ function saveSettings(patch) {
   fs.mkdirSync(path.dirname(settingsFile()), { recursive: true });
   fs.writeFileSync(settingsFile(), JSON.stringify(next, null, 2));
   return publicSettings(next);
+}
+
+// igimg://img/?u=<url>: busca a imagem no processo principal (só hosts do Instagram) e entrega ao app.
+protocol.registerSchemesAsPrivileged([{ scheme: 'igimg', privileges: { secure: true, supportFetchAPI: true } }]);
+const IMG_HOST = /(^|\.)(cdninstagram\.com|fbcdn\.net)$/i;
+
+function registerImageProxy() {
+  protocol.handle('igimg', async (request) => {
+    try {
+      const target = new URL(new URL(request.url).searchParams.get('u'));
+      if (target.protocol !== 'https:' || !IMG_HOST.test(target.hostname)) return new Response('forbidden', { status: 403 });
+      return await net.fetch(target.href, { headers: { 'User-Agent': 'Mozilla/5.0', Referer: 'https://www.instagram.com/' } });
+    } catch {
+      return new Response('error', { status: 502 });
+    }
+  });
 }
 
 let win;
@@ -140,6 +156,7 @@ ipcMain.handle('photo:download', async (_e, shortcode) => {
 });
 
 app.whenReady().then(() => {
+  registerImageProxy();
   createWindow();
   app.on('activate', () => BrowserWindow.getAllWindows().length === 0 && createWindow());
 });

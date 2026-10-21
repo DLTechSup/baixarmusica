@@ -28,8 +28,8 @@ def emit(**event):
     sys.stdout.flush()
 
 
-def fail(code, message):
-    emit(type='error', code=code, message=message)
+def fail(code, message, detail=''):
+    emit(type='error', code=code, message=message, detail=detail)
     sys.exit(1)
 
 
@@ -97,23 +97,28 @@ def make_loader(sessionid):
     return loader
 
 
-def explain(err):
+def explain(err, logged_in=False):
+    """Traduz a exceção para (código, mensagem, detalhe técnico)."""
+    detail = ' '.join(str(err).split())[:300] or err.__class__.__name__
     if isinstance(err, ex.ProfileNotExistsException):
-        return 'not_found', 'Perfil ou post não encontrado.'
+        return 'not_found', 'Perfil ou post não encontrado.', detail
     if isinstance(err, ex.PrivateProfileNotFollowedException):
-        return 'private', 'Este perfil é privado. Só dá para ver se a conta usada no login seguir o perfil.'
-    if isinstance(err, (ex.LoginRequiredException, ex.QueryReturnedForbiddenException)):
-        return 'login', 'O Instagram exige login para ver isto. Informe o cookie da sua conta em "Login".'
+        return 'private', 'Este perfil é privado. Só dá para ver se a conta usada no login seguir o perfil.', detail
     if isinstance(err, ex.TooManyRequestsException):
-        return 'rate', 'O Instagram limitou as requisições. Aguarde alguns minutos e tente de novo.'
+        return 'rate', 'O Instagram limitou as requisições. Aguarde alguns minutos e tente de novo.', detail
     if isinstance(err, ex.QueryReturnedNotFoundException):
-        return 'not_found', 'Perfil ou post não encontrado.'
-    if isinstance(err, ex.ConnectionException):
-        msg = str(err)
-        if re.search(r'401|403|429|login|Please wait', msg, re.I):
-            return 'login', 'O Instagram bloqueou o acesso sem login. Informe o cookie da sua conta em "Login" ou tente mais tarde.'
-        return 'network', 'Não foi possível falar com o Instagram. Verifique sua internet.'
-    return 'error', str(err) or err.__class__.__name__
+        return 'not_found', 'Perfil ou post não encontrado.', detail
+    if isinstance(err, ex.LoginRequiredException) or isinstance(err, ex.QueryReturnedForbiddenException):
+        return 'login', 'O Instagram exige login para ver isto. Clique em "Login" e informe o cookie da sua conta.', detail
+    if isinstance(err, (ex.ConnectionException, ex.BadResponseException)):
+        if re.search(r'resolve|timed out|timeout|Max retries|Connection (?:aborted|refused|reset)|getaddrinfo|SSL', detail, re.I):
+            return 'network', 'Não foi possível falar com o Instagram. Verifique sua internet.', detail
+        if not logged_in:
+            return 'login', 'O Instagram não libera a lista de fotos sem login. Clique em "Login" e informe o cookie da sua conta.', detail
+        if re.search(r'401|403|429|login|Please wait|checkpoint|challenge', detail, re.I):
+            return 'rate', 'O Instagram recusou o pedido (limite de requisições ou sessão expirada). Aguarde um pouco ou refaça o login com um cookie novo.', detail
+        return 'error', 'O Instagram recusou o pedido.', detail
+    return 'error', detail, detail
 
 
 def post_item(post):
@@ -161,7 +166,7 @@ def cmd_list(args):
     except SystemExit:
         raise
     except Exception as err:  # noqa: BLE001 - traduzimos para uma mensagem amigável
-        fail(*explain(err))
+        fail(*explain(err, bool(parse_cookie(args.sessionid).get('sessionid'))))
 
 
 def cmd_download(args):
@@ -194,7 +199,7 @@ def cmd_download(args):
     except SystemExit:
         raise
     except Exception as err:  # noqa: BLE001
-        fail(*explain(err))
+        fail(*explain(err, bool(parse_cookie(args.sessionid).get('sessionid'))))
 
 
 def main():

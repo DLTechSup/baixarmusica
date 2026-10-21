@@ -92,3 +92,4 @@ dialog::backdrop { background: rgba(0, 0, 0, .6); }
 .dlg-actions { display: flex; gap: 8px; margin-top: 6px; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 16px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border-strong); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); z-index: 20; }
 [hidden] { display: none !important; }
+.alert .detail { margin-top: 6px; font-size: 12px; opacity: .7; word-break: break-word; }

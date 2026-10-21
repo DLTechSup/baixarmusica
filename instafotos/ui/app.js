@@ -4,11 +4,20 @@ const $ = (id) => document.getElementById(id);
 const state = { settings: null, listId: 0, posts: new Map(), selected: new Set(), loading: false, profile: null, queue: [], running: 0 };
 const CONCURRENCY = 2;
 
+// As imagens passam pelo app (igimg://) para o Instagram não bloquear o carregamento direto.
+const proxied = (url) => `igimg://img/?u=${encodeURIComponent(url)}`;
 const fmtNum = (n) => (n == null ? '' : new Intl.NumberFormat('pt-BR').format(n));
 
-function showAlert(msg) {
-  $('alert').textContent = msg || '';
-  $('alert').hidden = !msg;
+function showAlert(msg, detail) {
+  const el = $('alert');
+  el.textContent = msg || '';
+  if (msg && detail && detail !== msg) {
+    const small = document.createElement('div');
+    small.className = 'detail';
+    small.textContent = `Detalhe: ${detail}`;
+    el.append(small);
+  }
+  el.hidden = !msg;
 }
 
 let toastTimer;
@@ -54,7 +63,7 @@ function makeCard(post) {
   img.loading = 'lazy';
   img.referrerPolicy = 'no-referrer';
   img.alt = post.caption || post.shortcode;
-  img.src = post.thumb;
+  img.src = proxied(post.thumb);
   img.addEventListener('error', () => {
     img.remove();
     thumb.classList.add('broken');
@@ -125,7 +134,7 @@ function onProfile(p) {
   $('profile').hidden = false;
   const pic = $('p-pic');
   pic.hidden = !p.picture;
-  if (p.picture) pic.src = p.picture;
+  if (p.picture) pic.src = proxied(p.picture);
   $('p-name').textContent = p.single ? `Post de @${p.username}` : `${p.fullName ? `${p.fullName} · ` : ''}@${p.username}`;
   $('p-bio').textContent = p.biography || '';
   $('p-stats').textContent = p.single ? '' : [p.posts != null && `${fmtNum(p.posts)} posts`, p.followers != null && `${fmtNum(p.followers)} seguidores`, p.isPrivate && '🔒 privado'].filter(Boolean).join(' · ');
@@ -146,7 +155,7 @@ function onListEvent({ listId, event }) {
     renderToolbar();
   } else if (event.type === 'error') {
     state.loading = false;
-    showAlert(event.message);
+    showAlert(event.message, event.detail);
     if (event.code === 'login' || event.code === 'bad_session') $('btn-login').classList.add('attention');
     renderToolbar();
   }
