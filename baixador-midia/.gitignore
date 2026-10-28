@@ -1,0 +1,14 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+# chaves de assinatura: nunca envie para o repositório
+*.jks
+*.keystore
+keystore.properties
+*.apk
+*.aab

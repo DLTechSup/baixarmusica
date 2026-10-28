@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Baixador de Mídia</string>
+    <string name="channel_downloads">Downloads em andamento</string>
+    <string name="channel_done">Downloads concluídos</string>
+</resources>

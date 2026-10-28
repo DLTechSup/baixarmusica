@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- seta de download centralizada na área segura (66x66 no centro) -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M48,32h12v20h10L54,68L38,52h10z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M36,72h36v6h-36z" />
+</vector>
