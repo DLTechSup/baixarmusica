@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, nativeTheme } = r
 const fs = require('node:fs');
 const path = require('node:path');
 const engine = require('./engine.cjs');
+const updater = require('./updater.cjs');
+const instagram = require('./instagram.cjs');
 
 const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
 const defaults = () => ({
@@ -69,8 +71,35 @@ const send = (channel, payload) => {
 ipcMain.handle('app:info', async () => ({
   version: app.getVersion(),
   engine: await engine.version(),
+  engineSource: engine.engineSource(),
   platform: process.platform,
 }));
+
+// ----- Motor: verificar e instalar atualização -----
+ipcMain.handle('engine:check', async () => {
+  const current = await engine.version();
+  const res = await updater.checkLatest(current);
+  return { ...res, source: engine.engineSource() };
+});
+ipcMain.handle('engine:update', async (_e, tag) => {
+  if (!/^\d{4}\.\d{2}\.\d{2}(\.\d+)?$/.test(String(tag))) return { ok: false, error: 'Versão inválida.' };
+  if (jobs.size > 0) return { ok: false, error: 'Há downloads em andamento. Espere terminar (ou cancele) e tente de novo.' };
+  const res = await updater.install(String(tag), (percent) => send('engine:progress', { percent }));
+  return res.ok ? { ...res, version: await engine.version(), source: engine.engineSource() } : res;
+});
+ipcMain.handle('engine:reset', async () => {
+  if (jobs.size > 0) return { ok: false, error: 'Há downloads em andamento.' };
+  updater.reset();
+  return { ok: true, version: await engine.version(), source: engine.engineSource() };
+});
+
+// ----- Instagram: conectar / desconectar a conta -----
+ipcMain.handle('instagram:status', () => instagram.isConnected());
+ipcMain.handle('instagram:login', async () => instagram.login(win));
+ipcMain.handle('instagram:logout', async () => {
+  await instagram.logout();
+  return false;
+});
 ipcMain.handle('settings:get', () => loadSettings());
 ipcMain.handle('settings:set', (_e, patch) => saveSettings(patch));
 ipcMain.handle('dialog:folder', async () => {
@@ -91,15 +120,24 @@ ipcMain.handle('shell:open', (_e, target) => {
   return shell.openPath(p);
 });
 
+// Para links do Instagram, usa a sessão conectada em Configurações (se houver).
+async function cookiesFor(url) {
+  return engine.isInstagramUrl(url) ? instagram.makeCookieFile() : null;
+}
+const errorCode = (message) => (message === engine.LOGIN_MSG ? 'login' : undefined);
+
 ipcMain.handle('media:fetch', async (_e, url) => {
+  const cookies = await cookiesFor(url);
   try {
-    return { ok: true, data: await engine.fetchInfo(url) };
+    return { ok: true, data: await engine.fetchInfo(url, { cookiesFile: cookies?.file }) };
   } catch (err) {
-    return { ok: false, error: err.message };
+    return { ok: false, error: err.message, code: errorCode(err.message) };
+  } finally {
+    cookies?.cleanup();
   }
 });
 
-ipcMain.handle('download:start', (_e, { jobId, url, mode, quality, videoQuality }) => {
+ipcMain.handle('download:start', async (_e, { jobId, url, mode, quality, videoQuality }) => {
   const settings = loadSettings();
   const { outDir, embedCover } = settings;
   try {
@@ -108,9 +146,11 @@ ipcMain.handle('download:start', (_e, { jobId, url, mode, quality, videoQuality 
     send('download:error', { jobId, error: `Não foi possível criar a pasta: ${err.message}` });
     return;
   }
+  const cookies = await cookiesFor(url);
   const job = engine.download(
     {
       url,
+      cookiesFile: cookies?.file,
       outDir,
       mode: mode || settings.mode,
       quality: quality || settings.quality,
@@ -121,11 +161,13 @@ ipcMain.handle('download:start', (_e, { jobId, url, mode, quality, videoQuality 
       onProgress: (p) => send('download:progress', { jobId, ...p }),
       onDone: ({ file }) => {
         jobs.delete(jobId);
+        cookies?.cleanup();
         send('download:done', { jobId, file });
       },
       onError: (error) => {
         jobs.delete(jobId);
-        send('download:error', { jobId, error });
+        cookies?.cleanup();
+        send('download:error', { jobId, error, code: errorCode(error) });
       },
     },
   );

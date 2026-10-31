@@ -21,7 +21,19 @@ function bundled(name) {
 // Retorna [comando, argsIniciais, envExtra] para chamar o yt-dlp.
 // Preferência: executável compilado em resources/bin; em desenvolvimento,
 // cai para o código-fonte em engine/yt-dlp rodando com o Python do sistema.
+function updatedEngine() {
+  const p = path.join(app.getPath('userData'), 'engine', exe('yt-dlp'));
+  return fs.existsSync(p) ? p : null;
+}
+
+// De onde vem o motor em uso: 'updated' (baixado pelo app), 'bundled' (instalador) ou 'source' (desenvolvimento).
+function engineSource() {
+  return updatedEngine() ? 'updated' : bundled('yt-dlp') ? 'bundled' : 'source';
+}
+
 function engineCommand() {
+  const updated = updatedEngine();
+  if (updated) return [updated, [], {}];
   const compiled = bundled('yt-dlp');
   if (compiled) return [compiled, [], {}];
   const source = path.join(__dirname, '..', 'engine', 'yt-dlp');
@@ -65,13 +77,18 @@ function runEngine(args) {
   });
 }
 
+const LOGIN_MSG = 'Este conteúdo do Instagram exige login. Abra ⚙ Configurações e clique em “Conectar Instagram”.';
+const isInstagramUrl = (url) => /^(?:https?:\/\/)?(?:[\w-]+\.)*instagram\.com(?:[/?#]|$)/i.test(String(url));
+
 function cleanError(text) {
   const lines = String(text).split(/\r?\n/).filter((l) => l.startsWith('ERROR:'));
   const msg = (lines.at(-1) || String(text).trim().split(/\r?\n/).at(-1) || '')
     .replace(/^ERROR:\s*/, '')
     .replace(/;\s*please report this issue.*$/i, '')
     .replace(/^\[[^\]]+\]\s*(?:[\w-]+:\s*)?/, '');
-  if (/Unsupported URL/i.test(msg)) return 'Link não suportado. Cole um link do YouTube.';
+  if (/--cookies|empty media response|login required|rate-limit reached|checkpoint|Instagram.*(?:private|log ?in)/i.test(msg)) return LOGIN_MSG;
+  if (/Sign in to confirm you.re not a bot/i.test(msg)) return 'O YouTube pediu confirmação anti-robô. Tente mais tarde ou atualize o motor em Configurações.';
+  if (/Unsupported URL/i.test(msg)) return 'Link não suportado. Cole um link do YouTube ou do Instagram.';
   if (/Unable to download webpage|Failed to resolve|getaddrinfo|timed out|Connection/i.test(msg)) return 'Sem conexão com o YouTube. Verifique sua internet.';
   if (/Private video/i.test(msg)) return 'Este vídeo é privado.';
   if (/Video unavailable|not available/i.test(msg)) return 'Vídeo indisponível.';
@@ -104,8 +121,8 @@ function toTrack(e) {
   };
 }
 
-async function fetchInfo(url) {
-  const out = await runEngine(['-J', '--flat-playlist', url]);
+async function fetchInfo(url, { cookiesFile } = {}) {
+  const out = await runEngine([...(cookiesFile ? ['--cookies', cookiesFile] : []), '-J', '--flat-playlist', url]);
   const info = JSON.parse(out);
   if (info._type === 'playlist') {
     const tracks = (info.entries || []).filter((e) => e && e.id && e.title !== '[Private video]' && e.title !== '[Deleted video]').map(toTrack);
@@ -140,7 +157,7 @@ function videoFormat(height) {
 }
 
 // Baixa uma faixa como MP3 ou um vídeo como MP4. Retorna { cancel } e chama os callbacks conforme avança.
-function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCover }, { onProgress, onDone, onError }) {
+function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCover, cookiesFile }, { onProgress, onDone, onError }) {
   const isVideo = mode === 'video';
   const args = [
     '--no-playlist',
@@ -158,6 +175,7 @@ function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCov
     '-P', outDir,
     '-o', '%(title)s.%(ext)s',
   ];
+  if (cookiesFile) args.push('--cookies', cookiesFile);
   if (isWin) args.push('--windows-filenames');
   if (embedCover) args.push('--embed-thumbnail', '--convert-thumbnails', 'jpg');
   args.push('--', url);
@@ -219,4 +237,4 @@ function download({ url, outDir, mode = 'audio', quality, videoQuality, embedCov
   };
 }
 
-module.exports = { fetchInfo, download, version };
+module.exports = { fetchInfo, download, version, engineSource, isInstagramUrl, LOGIN_MSG };

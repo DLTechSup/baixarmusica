@@ -1,5 +1,5 @@
 // API simulada para visualizar a interface no navegador, sem o Electron.
-const listeners = { progress: new Set(), done: new Set(), error: new Set() };
+const listeners = { progress: new Set(), done: new Set(), error: new Set(), engine: new Set() };
 const emit = (type, payload) => listeners[type].forEach((cb) => cb(payload));
 const sub = (type) => (cb) => {
   listeners[type].add(cb);
@@ -16,7 +16,14 @@ const sample = (id, title, artist, duration) => ({
 
 export const mockApi = {
   platform: 'web',
-  info: async () => ({ version: '1.0.0', engine: '2026.08.19', platform: 'web' }),
+  info: async () => ({ version: '1.0.0', engine: '2026.08.19', engineSource: 'bundled', platform: 'web' }),
+  checkEngine: async () => { await new Promise((r) => setTimeout(r, 600)); return { ok: true, current: '2026.08.19', latest: '2026.10.31', available: true }; },
+  updateEngine: async () => { for (const p of [20, 60, 100]) { listeners.engine.forEach((cb) => cb({ percent: p })); await new Promise((r) => setTimeout(r, 300)); } return { ok: true, version: '2026.10.31', source: 'updated' }; },
+  resetEngine: async () => ({ ok: true, version: '2026.08.19', source: 'bundled' }),
+  onEngineProgress: (cb) => { listeners.engine.add(cb); return () => listeners.engine.delete(cb); },
+  instagramStatus: async () => false,
+  instagramLogin: async () => true,
+  instagramLogout: async () => false,
   getSettings: async () => settings,
   setSettings: async (patch) => (settings = { ...settings, ...patch }),
   chooseFolder: async () => settings,

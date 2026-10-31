@@ -20,5 +20,12 @@ contextBridge.exposeInMainWorld('api', {
   onProgress: on('download:progress'),
   onDone: on('download:done'),
   onError: on('download:error'),
+  checkEngine: () => ipcRenderer.invoke('engine:check'),
+  updateEngine: (tag) => ipcRenderer.invoke('engine:update', tag),
+  resetEngine: () => ipcRenderer.invoke('engine:reset'),
+  onEngineProgress: on('engine:progress'),
+  instagramStatus: () => ipcRenderer.invoke('instagram:status'),
+  instagramLogin: () => ipcRenderer.invoke('instagram:login'),
+  instagramLogout: () => ipcRenderer.invoke('instagram:logout'),
   platform: process.platform,
 });

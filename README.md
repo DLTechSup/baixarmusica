@@ -16,6 +16,8 @@ O Sonora é um aplicativo de desktop para baixar **músicas em MP3** e **vídeos
 - Cada item da fila guarda o formato escolhido na hora de adicioná-lo
 - Fila de downloads com progresso, velocidade, tempo restante, cancelar e tentar de novo
 - Escolha da pasta de destino (padrão: `Músicas/Sonora`, para áudio e vídeo)
+- **Instagram**: Reels e posts. Em **⚙ Configurações → Conectar Instagram** você entra na sua conta numa janela do app (a página oficial); o Sonora não vê a senha, só guarda a sessão neste computador
+- **Atualização do motor**: em **⚙ Configurações → Verificar atualização** o app consulta o yt-dlp mais recente, baixa, confere o SHA-256 e passa a usá-lo, sem reinstalar o Sonora (há também "Restaurar motor original")
 - Tudo embutido: o usuário final **não precisa instalar Python, ffmpeg nem nada mais**
 
 ## Baixar o instalador

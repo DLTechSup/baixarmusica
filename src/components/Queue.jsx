@@ -12,7 +12,7 @@ const LABEL = {
   cancelled: 'Cancelado',
 };
 
-function JobRow({ job, onCancel, onRetry, onRemove, onShow }) {
+function JobRow({ job, onCancel, onRetry, onRemove, onShow, onLogin }) {
   const active = ['starting', 'downloading', 'converting'].includes(job.status);
   const detail =
     job.status === 'downloading'
@@ -40,6 +40,9 @@ function JobRow({ job, onCancel, onRetry, onRemove, onShow }) {
         )}
       </div>
       <div className="job-actions">
+        {job.status === 'error' && job.code === 'login' && (
+          <button className="ghost small" onClick={onLogin}>Conectar Instagram</button>
+        )}
         {job.status === 'done' && (
           <button className="icon-btn" title="Mostrar na pasta" onClick={() => onShow(job)}>
             <IconFolder width={17} height={17} />
@@ -64,7 +67,7 @@ function JobRow({ job, onCancel, onRetry, onRemove, onShow }) {
   );
 }
 
-export default function Queue({ jobs, onCancel, onRetry, onRemove, onClear, onShow }) {
+export default function Queue({ jobs, onCancel, onRetry, onRemove, onClear, onShow, onLogin }) {
   const done = jobs.filter((j) => j.status === 'done').length;
   const finished = jobs.filter((j) => ['done', 'error', 'cancelled'].includes(j.status)).length;
 
@@ -88,7 +91,7 @@ export default function Queue({ jobs, onCancel, onRetry, onRemove, onClear, onSh
       ) : (
         <ul className="jobs">
           {jobs.map((job) => (
-            <JobRow key={job.jobId} job={job} onCancel={onCancel} onRetry={onRetry} onRemove={onRemove} onShow={onShow} />
+            <JobRow key={job.jobId} job={job} onCancel={onCancel} onRetry={onRetry} onRemove={onRemove} onShow={onShow} onLogin={onLogin} />
           ))}
         </ul>
       )}

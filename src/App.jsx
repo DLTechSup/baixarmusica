@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { IconLogo, IconFolder } from './components/Icons.jsx';
+import { IconLogo, IconFolder, IconSettings } from './components/Icons.jsx';
 import UrlBar from './components/UrlBar.jsx';
 import Options from './components/Options.jsx';
 import Preview from './components/Preview.jsx';
 import Queue from './components/Queue.jsx';
+import SettingsDialog from './components/SettingsDialog.jsx';
 
 const api = () => window.api;
 let seq = 0;
@@ -15,6 +16,9 @@ export default function App() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errorCode, setErrorCode] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [igConnected, setIgConnected] = useState(false);
   const [preview, setPreview] = useState(null);
   const [jobs, setJobs] = useState([]);
   const started = useRef(new Set());
@@ -22,6 +26,7 @@ export default function App() {
   useEffect(() => {
     api().getSettings().then(setSettings);
     api().info().then(setInfo);
+    api().instagramStatus().then(setIgConnected);
   }, []);
 
   const patchJob = useCallback((jobId, patch, onlyIfActive = false) => {
@@ -39,7 +44,7 @@ export default function App() {
           ? { status: 'converting', percent: 100, speed: null, eta: null }
           : { status: 'downloading', ...(percent != null && { percent }), speed, eta }, true)),
       api().onDone(({ jobId, file }) => patchJob(jobId, { status: 'done', percent: 100, file }, true)),
-      api().onError(({ jobId, error }) => patchJob(jobId, { status: 'error', error }, true)),
+      api().onError(({ jobId, error, code }) => patchJob(jobId, { status: 'error', error, code }, true)),
     ];
     return () => offs.forEach((off) => off());
   }, [patchJob]);
@@ -68,11 +73,15 @@ export default function App() {
     if (!target) return;
     setLoading(true);
     setError('');
+    setErrorCode('');
     setPreview(null);
     const res = await api().fetchMedia(target);
     setLoading(false);
     if (res.ok) setPreview(res.data);
-    else setError(res.error);
+    else {
+      setError(res.error);
+      setErrorCode(res.code || '');
+    }
   };
 
   const enqueue = (tracks) => {
@@ -94,6 +103,16 @@ export default function App() {
   const remove = (job) => setJobs((list) => list.filter((j) => j.jobId !== job.jobId));
   const clearFinished = () => setJobs((list) => list.filter((j) => !['done', 'cancelled', 'error'].includes(j.status)));
 
+  const connectInstagram = async () => {
+    const ok = await api().instagramLogin();
+    setIgConnected(ok);
+    if (ok) {
+      setError('');
+      setErrorCode('');
+    }
+    return ok;
+  };
+
   const isMac = api().platform === 'darwin';
 
   return (
@@ -105,9 +124,14 @@ export default function App() {
           <span>Sonora</span>
           <span className="brand-tag">por DLTechSup</span>
         </div>
-        <button className="ghost small no-drag" onClick={() => api().openFolder()} title="Abrir pasta de downloads">
-          <IconFolder width={16} height={16} /> Meus downloads
-        </button>
+        <div className="header-actions">
+          <button className="ghost small no-drag" onClick={() => api().openFolder()} title="Abrir pasta de downloads">
+            <IconFolder width={16} height={16} /> Meus downloads
+          </button>
+          <button className="ghost small no-drag" onClick={() => setShowSettings(true)} title="Configurações">
+            <IconSettings width={16} height={16} /> Configurações
+          </button>
+        </div>
       </header>
 
       <main className="content">
@@ -115,10 +139,17 @@ export default function App() {
           <h1>
             {settings?.mode === 'video' ? <>Seus vídeos favoritos, <span className="grad">em MP4.</span></> : <>Suas músicas favoritas, <span className="grad">em MP3.</span></>}
           </h1>
-          <p className="muted">Cole o link de um vídeo ou playlist do YouTube e baixe como música (MP3) ou vídeo (MP4) em alta qualidade.</p>
+          <p className="muted">Cole o link de um vídeo, playlist ou Reel do YouTube/Instagram e baixe como música (MP3) ou vídeo (MP4) em alta qualidade.</p>
           <UrlBar value={url} onChange={setUrl} onSubmit={search} loading={loading} />
           {settings && <Options settings={settings} onChange={updateSettings} onChooseFolder={chooseFolder} />}
-          {error && <div className="alert">{error}</div>}
+          {error && (
+            <div className="alert">
+              <span>{error}</span>
+              {errorCode === 'login' && (
+                <button className="primary small" onClick={connectInstagram}>Conectar Instagram</button>
+              )}
+            </div>
+          )}
         </section>
 
         {preview && <Preview data={preview} mode={settings?.mode} onDownload={enqueue} onClose={() => setPreview(null)} />}
@@ -130,8 +161,20 @@ export default function App() {
           onRemove={remove}
           onClear={clearFinished}
           onShow={(job) => api().showFile(job.file)}
+          onLogin={connectInstagram}
         />
       </main>
+
+      {showSettings && (
+        <SettingsDialog
+          info={info}
+          igConnected={igConnected}
+          onClose={() => setShowSettings(false)}
+          onInfo={setInfo}
+          onConnect={connectInstagram}
+          onDisconnect={async () => setIgConnected(await api().instagramLogout())}
+        />
+      )}
 
       <footer className="footer muted">
         <span>Sonora v{info?.version ?? '—'}</span>
